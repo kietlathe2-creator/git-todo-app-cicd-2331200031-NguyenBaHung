@@ -1,35 +1,43 @@
-const { test, expect, _electron: electron } = require('@playwright/test');
+const { _electron: electron } = require('playwright');
+const { test, expect } = require('@playwright/test');
 
-test('End-to-end user workflow', async () => {
-    // Launch the Electron app
+test('should complete the core user workflow', async () => {
+    // 1. Khởi chạy ứng dụng [cite: 71]
     const electronApp = await electron.launch({ args: ['.'] });
     const window = await electronApp.firstWindow();
-
-    const taskText = 'My new E2E test task';
-
-    // --- TODO: Task 1: Add a new todo item ---
-    // 1. Find the input field (use a locator like window.locator('#todo-input')).
-    // 2. Type the `taskText` into it.
-    // 3. Find and click the "Add" button.
-
-
-    // --- TODO: Task 2: Verify the todo item was added ---
-    // 1. Locate the new todo item in the list. A good locator might be `window.locator('.todo-item')`.
-    // 2. Assert that its text content contains the `taskText`.
     
+    // Đợi cửa sổ tải xong hoàn toàn
+    await window.waitForLoadState('domcontentloaded');
 
-    // --- TODO: Task 3: Mark the todo item as complete ---
-    // 1. Find the checkbox within the new todo item.
-    // 2. Click the checkbox.
-    // 3. Assert that the todo item now has the 'completed' class.
+    // 2. Tìm ô input và nhập task mới 
+    const todoText = 'Học Playwright E2E';
+    await window.waitForSelector('#todo-input'); // Đợi ô input xuất hiện
+    await window.fill('#todo-input', todoText);
 
+    // 3. Click nút "Add" 
+    await window.waitForSelector('#add-btn'); // Đợi nút Add xuất hiện
+    await window.click('#add-btn');
 
-    // --- TODO: Task 4: Delete the todo item ---
-    // 1. Find the delete button within the todo item.
-    // 2. Click the delete button.
-    // 3. Assert that the todo item is no longer visible on the page.
+    // 4. Xác nhận task mới xuất hiện 
+    const todoItem = window.locator('.todo-item').last();
+    await expect(todoItem).toBeVisible();
+    await expect(todoItem).toContainText(todoText);
 
+    // 5. Click checkbox để hoàn thành [cite: 75]
+    const checkbox = todoItem.locator('input[type="checkbox"]');
+    await checkbox.check();
 
-    // Close the app
+    // 6. Xác nhận style 'completed' [cite: 76]
+    await expect(todoItem).toHaveClass(/completed/);
+
+    // 7. Click nút "Delete" [cite: 77]
+    const deleteBtn = todoItem.locator('.delete-btn');
+    await deleteBtn.click();
+
+    // 8. Xác nhận đã xóa thành công [cite: 78]
+    const count = await window.locator('.todo-item').count();
+    expect(count).toBe(0);
+
+    // Đóng ứng dụng
     await electronApp.close();
 });
