@@ -1,7 +1,7 @@
 const { TodoService } = require('../../js/model');
 const { Controller } = require('../../js/controller');
 
-// Mock the View because we are not testing the UI, only Controller-Model interaction.
+// Giả lập View vì chúng ta không kiểm tra giao diện, chỉ kiểm tra tương tác Controller-Model[cite: 59].
 const mockView = {
     update: jest.fn(),
     bindAddTodo: jest.fn(),
@@ -14,22 +14,34 @@ describe('Controller-Service Integration Tests', () => {
     let controller;
 
     beforeEach(() => {
-        service = new TodoService();
-        service.todos = []; // Reset singleton for tests
+        // Khởi tạo Service và Controller[cite: 60].
+        service = TodoService.getInstance ? TodoService.getInstance() : new TodoService();
+        service.todos = []; // Reset dữ liệu cho mỗi bài test[cite: 35].
         controller = new Controller(service, mockView);
     });
 
     test('handleAddTodo should call service.addTodo and update the model', () => {
-        // TODO: Call the controller's handleAddTodo method with some test text.
-        // Then, get the list of todos directly from the service.
-        // Assert that the service's todos array has a length of 1.
-        // Assert that the text of the first todo in the service matches the input.
+        // Arrange
+        const testText = "Integration Test Task";
+
+        // Act: Gọi phương thức của controller (giả lập hành động người dùng).
+        controller.handleAddTodo(testText);
+
+        // Assert: Kiểm tra dữ liệu trong Service đã thay đổi đúng chưa.
+        const todos = service.todos;
+        expect(todos.length).toBe(1);
+        expect(todos[0].text).toBe(testText);
     });
 
     test('handleRemoveTodo should call service.removeTodo and update the model', () => {
-        // TODO: First, directly add a todo to the service.
-        // Get the ID of the new todo.
-        // Call the controller's handleRemoveTodo method with that ID.
-        // Assert that the service's todos array is now empty.
+        // Arrange: Thêm trực tiếp một todo vào service trước.
+        service.addTodo("Task to delete");
+        const todoId = service.todos[0].id;
+
+        // Act: Gọi phương thức xóa của controller.
+        controller.handleRemoveTodo(todoId);
+
+        // Assert: Xác nhận danh sách hiện tại phải trống.
+        expect(service.todos.length).toBe(0);
     });
 });
